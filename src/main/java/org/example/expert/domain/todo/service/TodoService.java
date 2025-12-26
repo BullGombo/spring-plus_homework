@@ -11,22 +11,36 @@ import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
+import org.example.expert.domain.user.repository.UserRepository;
+import org.example.expert.domain.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+// ############################################## 1 - 1 ##############################################
+//@Transactional(readOnly = true)   읽기전용이면 생성이 안되지...
+@Transactional
 public class TodoService {
 
     private final TodoRepository todoRepository;
     private final WeatherClient weatherClient;
 
+    private final UserRepository userRepository;
+
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
-        User user = User.fromAuthUser(authUser);
+// ############################################## 1 - 1 ##############################################
+//        User user = User.fromAuthUser(authUser);
+
+        // JWT에서 만든 User 객체 != DB에 존재하는 User 엔티티
+        // authUser로는 id값만 참고해서, DB에서 직접 가져오도록 수정
+        User user = userRepository.findById(authUser.getId())
+                .orElseThrow(() -> new InvalidRequestException("User not found"));
 
         String weather = weatherClient.getTodayWeather();
 
@@ -47,10 +61,12 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size) {
+// ############################################## 1 - 3 ##############################################
+    @Transactional(readOnly = true)
+    public Page<TodoResponse> getTodos(int page, int size, String weather, LocalDateTime start, LocalDateTime end) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
+        Page<Todo> todos = todoRepository.searchTodos(weather, start, end, pageable);
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),

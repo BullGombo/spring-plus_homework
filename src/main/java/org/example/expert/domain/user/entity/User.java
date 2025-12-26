@@ -20,21 +20,27 @@ public class User extends Timestamped {
     private String password;
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
+// ############################################## 1 - 2 ##############################################
+    // - User 테이블에 nickname 컬럼을 추가
+    // - nickname은 중복 가능
+    private String nickname;
 
-    public User(String email, String password, UserRole userRole) {
+    public User(String email, String password, UserRole userRole, String nickname) {
         this.email = email;
         this.password = password;
         this.userRole = userRole;
+        this.nickname = nickname;
     }
 
-    private User(Long id, String email, UserRole userRole) {
+    private User(Long id, String email, UserRole userRole, String nickname) {
         this.id = id;
         this.email = email;
         this.userRole = userRole;
+        this.nickname = nickname;
     }
 
     public static User fromAuthUser(AuthUser authUser) {
-        return new User(authUser.getId(), authUser.getEmail(), authUser.getUserRole());
+        return new User(authUser.getId(), authUser.getEmail(), authUser.getUserRole(), authUser.getNickname());
     }
 
     public void changePassword(String password) {

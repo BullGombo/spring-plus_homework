@@ -35,7 +35,7 @@ class TodoControllerTest {
         // given
         long todoId = 1L;
         String title = "title";
-        AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
+        AuthUser authUser = new AuthUser(1L, "email", UserRole.USER, "nickname");
         User user = User.fromAuthUser(authUser);
         UserResponse userResponse = new UserResponse(user.getId(), user.getEmail());
         TodoResponse response = new TodoResponse(
@@ -60,18 +60,22 @@ class TodoControllerTest {
 
     @Test
     void todo_단건_조회_시_todo가_존재하지_않아_예외가_발생한다() throws Exception {
-        // given
+        // given (테스트에 필요한 것들? 선언)
         long todoId = 1L;
 
-        // when
+        // when (테스트할 로직) - 단건 조회 실패 상황
         when(todoService.getTodo(todoId))
-                .thenThrow(new InvalidRequestException("Todo not found"));
+// ############################################## 1 - 4 ##############################################
+                .thenThrow(new InvalidRequestException("Todo not found")); // <- .thenThrow로 예외상황을 연출중
 
-        // then
+        // then (결과 예상) - 400을 던져줘야함
         mockMvc.perform(get("/todos/{todoId}", todoId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value(HttpStatus.OK.name()))
-                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+//                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest()) // <- 실패 상황을 테스트하는 거라서 400을 줘야함
+                // .value() : assertEquals같은 느낌으로 비교하는 메서드
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.name())) // .name() = "status" : "BAD_REQUEST"
+                .andExpect(jsonPath("$.code").value(HttpStatus.BAD_REQUEST.value())) // .value() = "code" : 400
                 .andExpect(jsonPath("$.message").value("Todo not found"));
+        // 나는 이 테스트 수정이 생각보다 어려웠다... 메서드 하나하나의 의미를 모르면 왜 잘못됐는지 모르기 때문이다...
     }
 }
