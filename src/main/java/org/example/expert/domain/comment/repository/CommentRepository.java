@@ -9,6 +9,10 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c JOIN c.user WHERE c.todo.id = :todoId")
+// ############################################## 2 - 2 ##############################################
+//    @Query("SELECT c FROM Comment c JOIN c.user WHERE c.todo.id = :todoId")
+    // Lazy + for문 → N+1 발생
+    // Lazy + 전략적 Fetch 로 N+1 문제 해결
+@Query("SELECT c FROM Comment c JOIN FETCH c.user WHERE c.todo.id = :todoId")
     List<Comment> findByTodoIdWithUser(@Param("todoId") Long todoId);
 }

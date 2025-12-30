@@ -80,7 +80,8 @@ public class TodoService {
     }
 
     public TodoResponse getTodo(long todoId) {
-        Todo todo = todoRepository.findByIdWithUser(todoId)
+// ############################################## 2 - 3 ##############################################
+        Todo todo = todoRepository.findByIdWithUserQueryDSL(todoId) // <- QueryDSL버전 쿼리메서드로 수정
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
 
         User user = todo.getUser();
